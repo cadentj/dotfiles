@@ -51,6 +51,7 @@ git clone https://github.com/cadentj/dotfiles.git
 cd dotfiles
 bash setup_github.sh
 bash setup_aliases.sh
+bash install.sh
 EOF
 
 # Combine SSH command with script
