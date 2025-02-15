@@ -8,7 +8,7 @@ apt-get update
 apt-get install -y tmux
 
 # Add aliases to bashrc
-echo "alias gc='git commit -m'" >> /root/.bashrc
+echo "alias gc='git add . && git commit -m'" >> /root/.bashrc
 echo "alias tma='tmux attach -t'" >> /root/.bashrc
 echo "export HF_HOME=/workspace/hf" >> /root/.bashrc
 source /root/.bashrc
