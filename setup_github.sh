@@ -9,5 +9,8 @@ github_url=${3:-""}
 git config --global user.email "$email"
 git config --global user.name "$name"
 
+# Optional: Store credentials
+git config --global credential.helper store
+
 # Include the rest of the script someday...
 # https://github.com/jplhughes/dotfiles/blob/master/runpod/setup_github.sh
