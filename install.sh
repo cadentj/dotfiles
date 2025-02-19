@@ -4,8 +4,7 @@
 apt-get update
 apt-get install -y tmux
 
-
-# 2) Add aliases and environment variables to bashrc
+# 2) Add aliases and environment variables to .bashrc
 echo "alias gc='git add . && git commit -m'" >> /root/.bashrc
 echo "alias tma='tmux attach -t'" >> /root/.bashrc
 echo 'alias clone='"'"'f(){ git clone "https://github.com/$1.git"; unset -f f; }; f'"'"'' >> /root/.bashrc
