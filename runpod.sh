@@ -9,6 +9,3 @@ uv venv
 # 2) Assuming repo is cloned, run setup scripts
 bash dotfiles/setup_github.sh
 source dotfiles/install.sh
-
-# 3) Clone all the repos I'm using at the moment
-bash dotfiles/current.sh

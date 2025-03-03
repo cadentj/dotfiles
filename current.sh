@@ -5,3 +5,5 @@ git clone https://github.com/cadentj/autointerp.git
 git clone https://github.com/cadentj/OpenRLHF.git
 git clone https://github.com/saprmarks/dictionary_learning.git
 git clone https://github.com/HelenaCasademunt/steering-finetuning.git
+
+cd steering-finetuning && uv sync --active
