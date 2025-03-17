@@ -7,10 +7,10 @@ apt-get install -y tmux
 # 2) Add aliases and environment variables to .bashrc
 echo "alias gc='git add . && git commit -m'" >> /root/.bashrc
 echo "alias tma='tmux attach -t'" >> /root/.bashrc
-echo 'alias clone='"'"'f(){ git clone "https://github.com/$1.git"; unset -f f; }; f'"'"'' >> /root/.bashrc
 echo "alias venv='source /root/.venv/bin/activate'" >> /root/.bashrc
 
 echo "export HF_HOME=/workspace/hf" >> /root/.bashrc
+echo "export HF_HUB_ENABLE_HF_TRANSFER=1" >> /root/.bashrc
 
 # Source
 source /root/.bashrc
