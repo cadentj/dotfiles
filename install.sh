@@ -17,5 +17,6 @@ source /root/.bashrc
 
 # 3) Set up huggingface cache at /workspace/hf
 uv pip install -U "huggingface_hub[cli]"
+uv pip install -U "huggingface-hub[hf-transfer]"
 source /root/.venv/bin/activate
 huggingface-cli login # This will prompt for token
