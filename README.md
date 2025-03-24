@@ -26,3 +26,5 @@ Also add this to your user settings if you want to use `.bashrc` variables in Ju
         "dotenv.load_dotenv('/root/.bashrc')"
     ],
 ```
+
+This repository uses Runpod Environment Variables to login.

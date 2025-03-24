@@ -1,5 +1,6 @@
 #!/bin/bash
 
+apt-get update
 apt-get install -y gh
 
 # Input arguments
@@ -7,7 +8,7 @@ email=${1:-"caden.juang@gmail.com"}
 name=${2:-"cadentj"}
 github_url=${3:-""}
 
-# 0) Setup git
+# Setup git
 git config --global user.email "$email"
 git config --global user.name "$name"
 
@@ -15,5 +16,4 @@ git config --global user.name "$name"
 git config --global credential.helper store
 
 # Set GitHub token for GitHub CLI
-gh auth login --with-token < $RUNPOD_GH_TOKEN
-
+echo $RUNPOD_GH_TOKEN | gh auth login --with-token

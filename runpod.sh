@@ -7,5 +7,5 @@ uv python install 3.11
 uv venv
 
 # 2) Assuming repo is cloned, run setup scripts
-source dotfiles/install.sh
 bash dotfiles/setup_github.sh
+source dotfiles/install.sh
