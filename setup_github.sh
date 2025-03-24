@@ -9,6 +9,13 @@ github_url=${3:-""}
 git config --global user.email "$email"
 git config --global user.name "$name"
 
+# Set GitHub token from environment variable
+if [ -n "$RUNPOD_GH_TOKEN" ]; then
+    git config --global credential.helper '!f() { echo "username=${name}"; echo "password=${RUNPOD_GH_TOKEN}"; }; f'
+else
+    echo "Warning: RUNPOD_GH_TOKEN environment variable not set"
+fi
+
 # Optional: Store credentials
 git config --global credential.helper store
 

@@ -7,3 +7,4 @@ git clone https://github.com/saprmarks/dictionary_learning.git
 git clone https://github.com/HelenaCasademunt/steering-finetuning.git
 
 cd steering-finetuning && git checkout caden && bash setup.sh
+wandb login $RUNPOD_WB_TOKEN

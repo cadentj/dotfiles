@@ -19,4 +19,4 @@ source /root/.bashrc
 uv pip install -U "huggingface_hub[cli]"
 uv pip install -U "huggingface-hub[hf-transfer]"
 source /root/.venv/bin/activate
-huggingface-cli login # This will prompt for token
+huggingface-cli login --token $RUNPOD_HF_TOKEN --add-to-git-credential
