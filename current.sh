@@ -1,3 +1,5 @@
+source dotfiles/runpod.sh
+
 # Repos I'm using at the moment
 git clone https://github.com/ndif-team/nnsight.git
 git clone https://github.com/apple/ml-cross-entropy.git
