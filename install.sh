@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # 1) Install packages
+apt-get update
 apt-get install -y tmux
 
 # 2) Add aliases and environment variables to .bashrc
