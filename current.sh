@@ -9,7 +9,7 @@ git clone https://github.com/cadentj/sparsify.git
 git clone https://cadentj:$RUNPOD_GH_TOKEN@github.com/HelenaCasademunt/steering-finetuning.git
 
 cd /root/steering-finetuning && git checkout caden && bash setup.sh
-cd /root/sparsify && uv pip install -e .
-cd /root/autointerp && uv pip install -e .
+cd /root/sparsify && git checkout fix && uv pip install -e .
+cd /root/autointerp && git checkout dash && uv pip install -e .
 
 wandb login $RUNPOD_WB_TOKEN
