@@ -8,5 +8,8 @@ git clone https://github.com/cadentj/OpenRLHF.git
 git clone https://github.com/cadentj/sparsify.git
 git clone https://cadentj:$RUNPOD_GH_TOKEN@github.com/HelenaCasademunt/steering-finetuning.git
 
-cd steering-finetuning && git checkout caden && bash setup.sh
+cd /root/steering-finetuning && git checkout caden && bash setup.sh
+cd /root/sparsify && uv pip install -e .
+cd /root/autointerp && uv pip install -e .
+
 wandb login $RUNPOD_WB_TOKEN
