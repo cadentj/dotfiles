@@ -15,6 +15,8 @@ Use the following commands for most workflows.
         "charliermarsh.ruff",
         "tamasfe.even-better-toml",
         "wholroyd.jinja",
+        "ziruiwang.nvidia-monitor",
+        "ms-python.debugpy"
     ],
 ```
 
