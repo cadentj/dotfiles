@@ -7,7 +7,9 @@ source dotfiles/runpod.sh
 # git clone https://github.com/cadentj/OpenRLHF.git
 # git clone https://github.com/cadentj/sparsify.git
 # git clone https://github.com/cadentj/emergent-misalignment.git
-# git clone https://cadentj:$RUNPOD_GH_TOKEN@github.com/HelenaCasademunt/steering-finetuning.git
+git clone https://cadentj:$RUNPOD_GH_TOKEN@github.com/cadentj/alignment-ctf.git
+
+cd alignment-ctf && uv pip install -r requirements.txt
 
 # cd /root/steering-finetuning && git checkout caden && bash setup.sh
 # cd /root/sparsify && git checkout ssae && uv pip install -e .
