@@ -9,6 +9,21 @@ echo "alias gc='git add . && git commit -m'" >> /root/.bashrc
 echo "alias tma='tmux attach -t'" >> /root/.bashrc
 echo "alias venv='source .venv/bin/activate'" >> /root/.bashrc
 
+# Add cvd function
+cat >> /root/.bashrc << 'EOF'
+
+# Function to set CUDA visible devices
+cvd() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: cvd <device_ids>"
+        echo "Example: cvd 0,1 or cvd 1"
+        return 1
+    fi
+    export CUDA_VISIBLE_DEVICES="$1"
+    echo "CUDA_VISIBLE_DEVICES set to: $1"
+}
+EOF
+
 echo "export HF_HOME=/workspace/hf" >> /root/.bashrc
 echo "export HF_HUB_ENABLE_HF_TRANSFER=1" >> /root/.bashrc
 
