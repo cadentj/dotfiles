@@ -28,3 +28,9 @@ Also add this to your user settings if you want to use `.bashrc` variables in Ju
 ```
 
 This repository uses Runpod Environment Variables to login.
+
+
+## Commands
+
+Copy my zsh theme from dotfiles to the zsh config directory.
+`cp ~/Programming/dotfiles/cadentj.zsh-theme $ZSH_CUSTOM/themes/cadentj.zsh-theme`
