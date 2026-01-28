@@ -8,7 +8,7 @@ bash dotfiles/setup_github.sh
 
 # 3) Install packages
 apt-get update
-apt-get install -y tmux
+apt-get install -y tmux unzip
 
 # 4) Add aliases
 echo "source dotfiles/aliases.sh" >> /root/.bashrc
