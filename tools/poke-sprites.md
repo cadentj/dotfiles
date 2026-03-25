@@ -62,6 +62,7 @@ PROXY_PATH=$(which mcp-proxy)
 
 cat > /home/sprite/start-git-mcp.sh << EOF
 #!/bin/bash
+cd /home/sprite/sinnoh && git pull
 exec $PROXY_PATH --port 8082 -- python /home/sprite/git-server.py
 EOF
 chmod +x /home/sprite/start-git-mcp.sh
