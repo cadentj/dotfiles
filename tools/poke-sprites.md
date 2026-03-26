@@ -22,8 +22,7 @@ sprite console
 npm install -g @modelcontextprotocol/server-filesystem
 
 # Install mcp python packages for HTTP transport (not just stdio)
-pip install mcp-proxy
-pip install "mcp[cli]"
+pip install mcp-proxy mcp
 ```
 
 ## Set up mcp servers on your sprite
