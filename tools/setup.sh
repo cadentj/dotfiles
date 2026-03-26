@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Poke sprite MCP setup (see poke-sprites.md).
 # Prerequisites on the sprite: sprite CLI installed, `sprite use <name>` for this machine,
-# and this dotfiles repo cloned (any path). Run:
-#   cd /path/to/dotfiles/tools && bash setup.sh
-# Or from repo root: bash tools/setup.sh
+# and this dotfiles repo cloned (any path). Run (do not `source` — use a bash subprocess):
+#   bash dotfiles/tools/setup.sh
+# Or: cd dotfiles/tools && bash setup.sh
 #
 # Fill in CONFIG below before running.
 
@@ -15,11 +15,18 @@ GIT_USER_NAME="poke-bot"
 GIT_USER_EMAIL="caden+poke-bot@example.com"
 # Clone or sync your repo here; must match what git MCP tools use.
 SINNOH_REPO_PATH="/home/sprite/sinnoh"
-# After setup, add MCPs in Poke (local machine). From `sprite list` and sprites.dev dashboard:
+# After setup, add MCPs in Poke (local machine). Host or https URL from `sprite list` / dashboard:
 SPRITE_URL="<SPRITE_URL>"
 SPRITE_AUTH_TOKEN="<SPRITE_AUTH_TOKEN>"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# ${BASH_SOURCE[0]} is bash-only; zsh leaves it unset, so sourcing under zsh breaks with set -u.
+# Prefer BASH_SOURCE when present (bash executed/sourced); else $0 (zsh, or sh).
+if [[ -n "${BASH_SOURCE+x}" ]]; then
+  _setup_this="${BASH_SOURCE[0]}"
+else
+  _setup_this="$0"
+fi
+SCRIPT_DIR="$(cd "$(dirname "$_setup_this")" && pwd)"
 DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 GIT_SERVER_SRC="$SCRIPT_DIR/git-server.py"
 SPRITE_HOME="/home/sprite"
@@ -132,8 +139,11 @@ echo "==> Done. If pip installed to ~/.local/bin, ensure it is on PATH for sprit
 echo ""
 
 if placeholder_ok "$SPRITE_URL" && placeholder_ok "$SPRITE_AUTH_TOKEN"; then
-  # SPRITE_URL: full base URL from \`sprite list\`, e.g. https://your-sprite.sprites.dev (no trailing slash)
+  # SPRITE_URL: from \`sprite list\` — host only (e.g. foo.sprites.dev) or full URL; https:// added if missing
   base="${SPRITE_URL%/}"
+  if [[ "$base" != http://* && "$base" != https://* ]]; then
+    base="https://$base"
+  fi
   echo "Add these MCPs in Poke (run on your local machine where \`poke\` is installed):"
   echo ""
   echo "poke mcp add ${base}/fs/mcp \\"
