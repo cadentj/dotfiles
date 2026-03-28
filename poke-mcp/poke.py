@@ -14,6 +14,12 @@ image = (
     modal.Image.debian_slim()
     .apt_install("git", "gh")
     .run_commands(
+        "git config --global credential.helper store",
+        f"echo 'https://x-access-token:{os.environ.get('GITHUB_TOKEN')}@github.com' > ~/.git-credentials",
+        "git config --global user.name 'poke-bot'",
+        "git config --global user.email 'caden+poke-bot@example.com'",
+    )
+    .run_commands(
         "git clone https://github.com/cadentj/sinnoh.git",
     )
     .uv_pip_install(

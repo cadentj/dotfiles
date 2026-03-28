@@ -118,7 +118,7 @@ poke mcp add https://<url>/fs/mcp \
   --name "Sprite FS" \
   --api-key <sprite-auth-token>
 
-poke mcp add https://ndif--poke-mcp-git-server-dev.modal.run/mcp \
-    --name "codex-test" \
-    --api-key password
+poke mcp add https://ndif--poke-mcp-git-server.modal.run/mcp \
+    --name "codemcp" \
+    --api-key <sprite-auth-token>
 ```
