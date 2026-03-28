@@ -162,7 +162,6 @@ async def grep(
     pattern: str,
     path: str | None = None,
     include: str | None = None,
-    chat_id: str | None = None,
     commit_hash: str | None = None,
 ) -> str:
     """Searches for files containing a specified pattern (regular expression) using git grep.
@@ -177,7 +176,6 @@ async def grep(
         pattern: The regular expression pattern to search for
         path: The directory or file to search in (must be in a git repository)
         include: Optional file pattern to filter the search
-        chat_id: The unique ID of the current chat session
         commit_hash: Optional Git commit hash for version tracking
 
     Returns:
@@ -185,9 +183,6 @@ async def grep(
 
     """
     try:
-        # Set default values
-        chat_id = "" if chat_id is None else chat_id
-
         # Default to current directory if path is not provided
         path = "." if path is None else path
 

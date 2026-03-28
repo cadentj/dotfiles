@@ -9,12 +9,10 @@ import re
 from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..code_command import run_formatter_without_commit
 from ..common import get_edit_snippet, normalize_file_path
 from ..file_utils import (
     async_open_text,
     check_file_path_and_permissions,
-    check_git_tracking_for_existing_file,
     write_text_content,
 )
 from ..git import commit_changes
@@ -752,7 +750,6 @@ async def edit_file(
     new_string: str | None = None,
     read_file_timestamps: dict[str, float] | None = None,
     description: str | None = None,
-    chat_id: str | None = None,
     commit_hash: str | None = None,
 ) -> str:
     """This is a tool for editing files. For larger edits, use the WriteFile tool to overwrite files.
@@ -806,7 +803,6 @@ async def edit_file(
         new_string: The new text to replace old_string with
         read_file_timestamps: Dictionary mapping file paths to timestamps when they were last read
         description: Short description of the change
-        chat_id: The unique ID of the current chat session
         commit_hash: Optional Git commit hash for version tracking
 
     Returns:
@@ -814,15 +810,12 @@ async def edit_file(
 
     Note:
         This function allows creating new files when old_string is empty and the file doesn't exist.
-        For existing files, it will reject attempts to edit files that are not tracked by git.
-        Files must be tracked in the git repository before they can be modified.
 
     """
     # Set default values
     old_string = "" if old_string is None else old_string
     new_string = "" if new_string is None else new_string
     description = "" if description is None else description
-    chat_id = "" if chat_id is None else chat_id
 
     # Normalize the file path
     full_file_path = normalize_file_path(path)
@@ -831,26 +824,10 @@ async def edit_file(
     old_string = old_string.replace("\r\n", "\n")
     new_string = new_string.replace("\r\n", "\n")
 
-    # Prevent editing codemcp.toml for security reasons
-    if os.path.basename(full_file_path) == "codemcp.toml":
-        raise ValueError("Editing codemcp.toml is not allowed for security reasons.")
-
     # Check file path and permissions
     is_valid, error_message = await check_file_path_and_permissions(full_file_path)
     if not is_valid:
         raise ValueError(error_message)
-
-    # Handle creating a new file - skip commit_pending_changes for non-existent files
-    creating_new_file = old_string == "" and not os.path.exists(full_file_path)
-
-    if not creating_new_file:
-        # Only check commit_pending_changes for existing files
-        is_tracked, track_error = await check_git_tracking_for_existing_file(
-            full_file_path,
-            chat_id=chat_id,
-        )
-        if not is_tracked:
-            raise ValueError(track_error)
 
     # Debug string comparison using our thorough utility
     strings_are_different = debug_string_comparison(
@@ -876,13 +853,10 @@ async def edit_file(
         await write_text_content(full_file_path, new_string)
 
         # Commit the changes
-        success, message = await commit_changes(full_file_path, description, chat_id)
+        success, message = await commit_changes(full_file_path, description)
         git_message = ""
         if success:
-            git_message = f"\nChanges committed to git: {description}"
-            # Include any extra details like previous commit hash if present in the message
-            if "previous commit was" in message:
-                git_message = f"\n{message}"
+            git_message = f"\n{message}"
         else:
             git_message = f"\nFailed to commit changes to git: {message}"
 
@@ -951,37 +925,18 @@ async def edit_file(
     if read_file_timestamps is not None:
         read_file_timestamps[full_file_path] = os.stat(full_file_path).st_mtime
 
-    # Try to run the formatter on the file
-    format_message = ""
-    formatter_success, formatter_output = await run_formatter_without_commit(
-        full_file_path
-    )
-    if formatter_success:
-        logger.info(f"Auto-formatted {full_file_path}")
-        if formatter_output.strip():
-            format_message = "\nAuto-formatted the file"
-    else:
-        # Only log warning if there was actually a format command configured but it failed
-        if not "No format command configured" in formatter_output:
-            logger.warning(
-                f"Failed to auto-format {full_file_path}: {formatter_output}"
-            )
-
     # Generate a snippet of the edited file to show in the response
     snippet = get_edit_snippet(content, old_string, new_string)
 
     # Commit the changes
     git_message = ""
-    success, message = await commit_changes(full_file_path, description, chat_id)
+    success, message = await commit_changes(full_file_path, description)
     if success:
-        git_message = f"\n\nChanges committed to git: {description}"
-        # Include any extra details like previous commit hash if present in the message
-        if "previous commit was" in message:
-            git_message = f"\n\n{message}"
+        git_message = f"\n\n{message}"
     else:
         git_message = f"\n\nFailed to commit changes to git: {message}"
 
-    result = f"Successfully edited {full_file_path}\n\nHere's a snippet of the edited file:\n{snippet}{format_message}{git_message}"
+    result = f"Successfully edited {full_file_path}\n\nHere's a snippet of the edited file:\n{snippet}{git_message}"
 
     # Append commit hash
     result, _ = await append_commit_hash(result, full_file_path, commit_hash)

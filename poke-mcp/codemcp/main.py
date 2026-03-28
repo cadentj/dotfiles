@@ -18,13 +18,10 @@ from .tools.chmod import chmod  # noqa: F401
 from .tools.edit_file import edit_file  # noqa: F401
 from .tools.glob import glob  # noqa: F401
 from .tools.grep import grep  # noqa: F401
-from .tools.init_project import init_project  # noqa: F401
 from .tools.ls import ls  # noqa: F401
 from .tools.mv import mv  # noqa: F401
 from .tools.read_file import read_file  # noqa: F401
 from .tools.rm import rm  # noqa: F401
-from .tools.run_command import run_command  # noqa: F401
-from .tools.think import think  # noqa: F401
 from .tools.write_file import write_file  # noqa: F401
 
 
@@ -376,120 +373,6 @@ def init(path: str, python: bool) -> None:
     """
     result = init_codemcp_project(path, python)
     click.echo(result)
-
-
-@cli.command()
-@click.argument("command", type=str)
-@click.argument("args", nargs=-1)
-@click.option("--path", type=click.Path(), default=".", help="Project directory path")
-def run(command: str, args: tuple, path: str) -> None:
-    """Run a command defined in codemcp.toml without doing git commits.
-
-    The command should be defined in the [commands] section of codemcp.toml.
-    Any additional arguments are passed to the command.
-
-    Examples:
-        codemcp run format
-        codemcp run test path/to/test_file.py
-    """
-    import asyncio
-    import os
-    import subprocess
-
-    import tomli
-
-    from .common import normalize_file_path
-    from .git_query import find_git_root
-
-    # Handle the async nature of the function in a sync context
-    asyncio.get_event_loop()
-
-    # Normalize path
-    full_path = normalize_file_path(path)
-
-    # Check if path exists
-    if not os.path.exists(full_path):
-        click.echo(f"Error: Path {path} does not exist", err=True)
-        return
-
-    # Check if it's a directory
-    if not os.path.isdir(full_path):
-        click.echo(f"Error: Path {path} is not a directory", err=True)
-        return
-
-    # First try to find codemcp.toml in the current directory
-    config_path = os.path.join(full_path, "codemcp.toml")
-
-    # If codemcp.toml is not in the current directory, traverse up to find the project root
-    if not os.path.exists(config_path):
-        # Use the existing find_git_root function to find the repository root
-        root_dir = find_git_root(full_path)
-        if root_dir:
-            # Check if codemcp.toml exists in the repository root
-            root_config_path = os.path.join(root_dir, "codemcp.toml")
-            if os.path.exists(root_config_path):
-                config_path = root_config_path
-                full_path = root_dir
-            else:
-                click.echo(
-                    f"Error: Config file not found in git repository root: {root_config_path}",
-                    err=True,
-                )
-                return
-        else:
-            click.echo(
-                f"Error: Not in a git repository and no codemcp.toml found in {full_path}",
-                err=True,
-            )
-            return
-
-    # Load command from config
-    try:
-        with open(config_path, "rb") as f:
-            config = tomli.load(f)
-
-        if "commands" not in config or command not in config["commands"]:
-            click.echo(
-                f"Error: Command '{command}' not found in codemcp.toml", err=True
-            )
-            exit(1)  # Exit with error code 1
-
-        cmd_config = config["commands"][command]
-        cmd_list = None
-
-        # Handle both direct command lists and dictionaries with 'command' field
-        if isinstance(cmd_config, list):
-            cmd_list = cmd_config
-        elif isinstance(cmd_config, dict) and "command" in cmd_config:
-            cmd_list = cmd_config["command"]
-        else:
-            click.echo(
-                f"Error: Invalid command configuration for '{command}'", err=True
-            )
-            exit(1)  # Exit with error code 1
-
-        # Add additional arguments if provided
-        if args:
-            cmd_list = list(cmd_list) + list(args)
-
-        # Run the command with inherited stdin/stdout/stderr
-        process = subprocess.run(
-            cmd_list,
-            cwd=full_path,
-            stdin=None,  # inherit
-            stdout=None,  # inherit
-            stderr=None,  # inherit
-            text=True,
-            check=False,  # Don't raise exception on non-zero exit codes
-        )
-
-        # Return the exit code
-        if process.returncode != 0:
-            exit(process.returncode)
-
-    except Exception as e:
-        click.echo(f"Error executing command: {e}", err=True)
-        exit(1)
 
 
 def create_sse_app(allowed_origins: Optional[List[str]] = None) -> Starlette:

@@ -9,9 +9,7 @@ from ..common import (
     MAX_OUTPUT_SIZE,
     normalize_file_path,
 )
-from ..git_query import find_git_root
 from ..mcp import mcp
-from ..rules import get_applicable_rules_content
 from .commit_utils import append_commit_hash
 
 __all__ = [
@@ -24,7 +22,6 @@ async def read_file(
     path: str,
     offset: int | None = None,
     limit: int | None = None,
-    chat_id: str | None = None,
     commit_hash: str | None = None,
 ) -> str:
     """Reads a file from the local filesystem. The path parameter must be an absolute path, not a relative path.
@@ -37,16 +34,12 @@ async def read_file(
         path: The absolute path to the file to read
         offset: The line number to start reading from (1-indexed)
         limit: The number of lines to read
-        chat_id: The unique ID of the current chat session
         commit_hash: Optional Git commit hash for version tracking
 
     Returns:
         The file content as a string
 
     """
-    # Set default values
-    chat_id = "" if chat_id is None else chat_id
-
     # Normalize the file path
     full_file_path = normalize_file_path(path)
 
@@ -108,14 +101,6 @@ async def read_file(
     # Add a message if we truncated the file
     if line_offset + len(processed_lines) < total_lines:
         content += f"\n... (file truncated, showing {len(processed_lines)} of {total_lines} lines)"
-
-    # Apply relevant cursor rules
-    # Find git repository root
-    repo_root = find_git_root(os.path.dirname(full_file_path))
-
-    if repo_root:
-        # Add applicable rules content
-        content += get_applicable_rules_content(repo_root, full_file_path)
 
     # Append commit hash
     result, _ = await append_commit_hash(content, full_file_path, commit_hash)

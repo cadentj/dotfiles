@@ -3,7 +3,6 @@
 
 import asyncio
 import os
-import re
 import subprocess
 import sys
 import tempfile
@@ -121,12 +120,7 @@ class MCPEndToEndTestCase(TestCase, unittest.IsolatedAsyncioTestCase):
         with open(readme_path, "w") as f:  # noqa: ASYNC230
             f.write("# Test Repository\n")
 
-        # Create a codemcp.toml file in the repo root (required for permission checks)
-        codemcp_toml_path = os.path.join(self.temp_dir.name, "codemcp.toml")
-        with open(codemcp_toml_path, "w") as f:  # noqa: ASYNC230
-            f.write("")
-
-        await self.git_run(["add", "README.md", "codemcp.toml"])
+        await self.git_run(["add", "README.md"])
         await self.git_run(["commit", "-m", "Initial commit"])
 
     def normalize_path(self, text: Any) -> Union[str, List[object], Any]:
@@ -185,22 +179,6 @@ class MCPEndToEndTestCase(TestCase, unittest.IsolatedAsyncioTestCase):
         # For anything else, convert to string
         return str(result)
 
-    def extract_chat_id_from_text(self, text: str) -> str:
-        """Extract chat_id from init_result_text.
-
-        Args:
-            text: The text output from InitProject tool
-
-        Returns:
-            str: The extracted chat_id
-
-        Raises:
-            AssertionError: If chat_id cannot be found in text
-        """
-        chat_id_match = re.search(r"chat ID: ([a-zA-Z0-9-]+)", text)
-        assert chat_id_match is not None, "Could not find chat ID in text"
-        return chat_id_match.group(1)
-
     async def _dispatch_to_subtool(self, subtool: str, kwargs: Dict[str, Any]) -> Any:
         """Dispatch to the appropriate subtool function based on the subtool name.
 
@@ -238,18 +216,6 @@ class MCPEndToEndTestCase(TestCase, unittest.IsolatedAsyncioTestCase):
 
             return await ls(**kwargs)
 
-        elif subtool == "InitProject":
-            from codemcp.tools.init_project import init_project
-
-            # No need for parameter conversion anymore - init_project accepts both path and directory
-            return await init_project(**kwargs)
-
-        elif subtool == "RunCommand":
-            from codemcp.tools.run_command import run_command
-
-            # No need for parameter conversion anymore - run_command accepts both path and project_dir
-            return await run_command(**kwargs)
-
         elif subtool == "Grep":
             from codemcp.tools.grep import grep
 
@@ -270,35 +236,10 @@ class MCPEndToEndTestCase(TestCase, unittest.IsolatedAsyncioTestCase):
 
             return await mv(**kwargs)
 
-        elif subtool == "Think":
-            from codemcp.tools.think import think
-
-            return await think(**kwargs)
-
         elif subtool == "Chmod":
             from codemcp.tools.chmod import chmod
 
             return await chmod(**kwargs)
-
-        elif subtool == "GitLog":
-            from codemcp.tools.git_log import git_log
-
-            return await git_log(**kwargs)
-
-        elif subtool == "GitDiff":
-            from codemcp.tools.git_diff import git_diff
-
-            return await git_diff(**kwargs)
-
-        elif subtool == "GitShow":
-            from codemcp.tools.git_show import git_show
-
-            return await git_show(**kwargs)
-
-        elif subtool == "GitBlame":
-            from codemcp.tools.git_blame import git_blame
-
-            return await git_blame(**kwargs)
 
         else:
             raise ValueError(f"Unknown subtool: {subtool}")
@@ -415,35 +356,6 @@ class MCPEndToEndTestCase(TestCase, unittest.IsolatedAsyncioTestCase):
             self.assertFalse(result.isError, result)
             normalized_result = self.normalize_path(result.content)
             return self.extract_text_from_result(normalized_result)
-
-    async def get_chat_id(self, session: Optional[ClientSession]) -> str:
-        """Initialize project and get chat_id.
-
-        Args:
-            session: The client session to use (kept for backward compatibility but unused)
-
-        Returns:
-            str: The chat_id
-        """
-        # Use the _dispatch_to_subtool for consistency with other test methods
-        init_result_text = await self._dispatch_to_subtool(
-            "InitProject",
-            {
-                "path": self.temp_dir.name,
-                "user_prompt": "Test initialization for get_chat_id",
-                "subject_line": "test: initialize for e2e testing",
-                "reuse_head_chat_id": False,
-            },
-        )
-
-        # Extract chat_id from the init result
-        chat_id_match = re.search(r"chat ID: ([a-zA-Z0-9-]+)", str(init_result_text))
-        assert chat_id_match is not None, (
-            "Could not find chat ID in initialization result"
-        )
-        chat_id = chat_id_match.group(1)
-
-        return chat_id
 
     @asynccontextmanager
     async def _unwrap_exception_groups(self) -> AsyncGenerator[None, None]:

@@ -70,8 +70,7 @@ async def get_git_base_dir(file_path: str) -> str:
 
 
 async def check_edit_permission(file_path: str) -> tuple[bool, str]:
-    """Check if editing the file is permitted based on the presence of codemcp.toml
-    in the git repository's root directory.
+    """Check if editing the file is permitted (path must lie inside a git repository).
 
     Args:
         file_path: The path to the file to edit
@@ -84,16 +83,5 @@ async def check_edit_permission(file_path: str) -> tuple[bool, str]:
         OSError: If there's an issue with file operations
         ValueError: If file_path is not in a git repository or other path issues
     """
-    # Get the git base directory (will raise an exception if not in a git repo)
-    git_base_dir = await get_git_base_dir(file_path)
-
-    # Check for codemcp.toml in the git base directory
-    config_path = os.path.join(git_base_dir, "codemcp.toml")
-    if not os.path.exists(config_path):
-        return False, (
-            "Permission denied: codemcp.toml file not found in the git repository root. "
-            "Please create a codemcp.toml file in the root directory of your project "
-            "to enable editing files with codemcp."
-        )
-
+    await get_git_base_dir(file_path)
     return True, "Permission granted."

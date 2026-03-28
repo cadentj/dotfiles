@@ -26,23 +26,19 @@ TRUNCATED_MESSAGE = f"There are more than {MAX_FILES} files in the directory. Us
 
 @mcp.tool()
 async def ls(
-    path: str, chat_id: str | None = None, commit_hash: str | None = None
+    path: str, commit_hash: str | None = None
 ) -> str:
     """Lists files and directories in a given path. The path parameter must be an absolute path, not a relative path.
     You should generally prefer the Glob and Grep tools, if you know which directories to search.
 
     Args:
         path: The absolute path to the directory to list
-        chat_id: The unique ID of the current chat session
         commit_hash: Optional Git commit hash for version tracking
 
     Returns:
         A formatted string representation of the directory contents
 
     """
-    # Set default values
-    chat_id = "" if chat_id is None else chat_id
-
     # Normalize the directory path
     full_directory_path = normalize_file_path(path)
 
@@ -53,11 +49,11 @@ async def ls(
     if not os.path.isdir(full_directory_path):
         raise NotADirectoryError(f"Path is not a directory: {path}")
 
-    # Safety check: Verify the directory is within a git repository with codemcp.toml
+    # Safety check: Verify the directory is within a git repository
     if not await is_git_repository(full_directory_path):
         raise ValueError(f"Directory is not in a Git repository: {path}")
 
-    # Check edit permission (which verifies codemcp.toml exists)
+    # Check edit permission (path must be inside repo)
     is_permitted, permission_message = await check_edit_permission(full_directory_path)
     if not is_permitted:
         raise ValueError(permission_message)

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import logging
 import os
 from typing import Optional, Tuple
 
@@ -8,12 +7,10 @@ import anyio
 
 from .access import check_edit_permission
 from .async_file_utils import OpenTextMode
-from .git import commit_changes
 from .line_endings import apply_line_endings, normalize_to_lf
 
 __all__ = [
     "check_file_path_and_permissions",
-    "check_git_tracking_for_existing_file",
     "ensure_directory_exists",
     "write_text_content",
     "async_open_text",
@@ -45,67 +42,6 @@ async def check_file_path_and_permissions(file_path: str) -> Tuple[bool, Optiona
     is_permitted, permission_message = await check_edit_permission(file_path)
     if not is_permitted:
         return False, permission_message
-
-    return True, None
-
-
-async def check_git_tracking_for_existing_file(
-    file_path: str,
-    chat_id: str,
-) -> tuple[bool, str | None]:
-    """Check if an existing file is tracked by git. Skips check for non-existent files.
-
-    Args:
-        file_path: The absolute path to the file
-        chat_id: The unique ID to identify the chat session
-
-    Returns:
-        A tuple of (success, error_message)
-        If success is True, error_message will be None
-
-    """
-    # Import normalize_file_path for tilde expansion
-    from .common import normalize_file_path
-
-    # Normalize the path with tilde expansion
-    file_path = normalize_file_path(file_path)
-
-    # Check if the file exists
-    file_exists = os.path.exists(file_path)
-
-    if file_exists:
-        # Check if the file is tracked by git - use ls-files directly since we just need to check tracking
-        directory = os.path.dirname(file_path)
-
-        # Check if the file is tracked by git
-        from .shell import run_command
-
-        file_status = await run_command(
-            ["git", "ls-files", "--error-unmatch", file_path],
-            cwd=directory,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-
-        file_is_tracked = file_status.returncode == 0
-
-        # If the file is not tracked, return an error
-        if not file_is_tracked:
-            error_msg = "File is not tracked by git. Please add the file to git tracking first using 'git add <file>'"
-            return False, error_msg
-
-        # If there are other uncommitted changes, commit them
-        commit_success, commit_message = await commit_changes(
-            file_path,
-            description="Snapshot before codemcp change",
-            chat_id=chat_id,
-        )
-
-        if not commit_success:
-            logging.debug(f"Failed to commit pending changes: {commit_message}")
-        else:
-            logging.debug(f"Pending changes status: {commit_message}")
 
     return True, None
 

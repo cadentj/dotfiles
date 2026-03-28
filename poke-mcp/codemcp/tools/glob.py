@@ -46,7 +46,6 @@ async def glob(
     path: str,
     limit: int | None = None,
     offset: int | None = None,
-    chat_id: str | None = None,
     commit_hash: str | None = None,
 ) -> str:
     """Fast file pattern matching tool that works with any codebase size
@@ -59,7 +58,6 @@ async def glob(
         path: The directory to search in
         limit: Maximum number of results to return
         offset: Number of results to skip (for pagination)
-        chat_id: The unique ID of the current chat session
         commit_hash: Optional Git commit hash for version tracking
 
     Returns:
@@ -68,7 +66,6 @@ async def glob(
     """
     try:
         # Set default values
-        chat_id = "" if chat_id is None else chat_id
         limit_val = 100 if limit is None else limit
         offset_val = 0 if offset is None else offset
 
@@ -82,7 +79,7 @@ async def glob(
         if not os.path.isdir(full_directory_path):
             raise NotADirectoryError(f"Path is not a directory: {path}")
 
-        # Safety check: Verify the directory is within a git repository with codemcp.toml
+        # Safety check: Verify the directory is within a git repository
         if not await is_git_repository(full_directory_path):
             raise ValueError(f"Directory is not in a Git repository: {path}")
 

@@ -2,48 +2,19 @@
 
 import logging
 import os
-import re
 import subprocess
 
 from .shell import run_command
 
 __all__ = [
-    "get_head_commit_message",
     "get_head_commit_hash",
-    "get_head_commit_chat_id",
     "get_repository_root",
     "is_git_repository",
-    "get_ref_commit_chat_id",
     "find_git_root",
     "get_current_commit_hash",
 ]
 
 log = logging.getLogger(__name__)
-
-
-async def get_head_commit_message(directory: str) -> str:
-    """Get the full commit message from HEAD.
-
-    Args:
-        directory: The directory to check
-
-    Returns:
-        The commit message
-
-    Raises:
-        subprocess.SubprocessError: If HEAD does not exist or another git error occurs
-        Exception: For any other errors during the operation
-    """
-    # Get the commit message - this will fail if HEAD doesn't exist
-    result = await run_command(
-        ["git", "log", "-1", "--pretty=%B"],
-        cwd=directory,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-
-    return str(result.stdout.strip())
 
 
 async def get_head_commit_hash(directory: str, short: bool = True) -> str:
@@ -75,31 +46,6 @@ async def get_head_commit_hash(directory: str, short: bool = True) -> str:
     )
 
     return str(result.stdout.strip())
-
-
-async def get_head_commit_chat_id(directory: str) -> str | None:
-    """Get the chat ID from the HEAD commit's message.
-
-    Args:
-        directory: The directory to check
-
-    Returns:
-        The chat ID if found, None otherwise
-
-    Raises:
-        subprocess.SubprocessError: If HEAD does not exist or another git error occurs
-        Exception: For any other errors during the operation
-    """
-    commit_message = await get_head_commit_message(directory)
-
-    # Use regex to find the last occurrence of codemcp-id: XXX
-    # The pattern looks for "codemcp-id: " followed by any characters up to a newline or end of string
-    matches = re.findall(r"codemcp-id:\s*([a-zA-Z0-9-]+)", commit_message)
-
-    # Return the last match if any matches found
-    if matches:
-        return matches[-1].strip()
-    return None
 
 
 async def get_repository_root(path: str) -> str:
@@ -174,55 +120,6 @@ async def is_git_repository(path: str) -> bool:
         # If we can't get the repo root, it's not a proper git repository
         # or the path doesn't exist or isn't in a repo
         return False
-
-
-async def get_ref_commit_chat_id(directory: str, ref_name: str) -> str | None:
-    """Get the chat ID from a specific reference's commit message.
-
-    Args:
-        directory: The directory to check
-        ref_name: The reference name to check
-
-    Returns:
-        The chat ID if found, None otherwise
-    """
-    try:
-        # Check if the reference exists
-        result = await run_command(
-            ["git", "show-ref", "--verify", ref_name],
-            cwd=directory,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-
-        if result.returncode != 0:
-            # Reference doesn't exist
-            return None
-
-        # Get the commit message from the reference
-        message_result = await run_command(
-            ["git", "log", "-1", "--pretty=%B", ref_name],
-            cwd=directory,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        commit_message = str(message_result.stdout.strip())
-
-        # Use regex to find the last occurrence of codemcp-id: XXX
-        # The pattern looks for "codemcp-id: " followed by any characters up to a newline or end of string
-        matches = re.findall(r"codemcp-id:\s*([^\n]*)", commit_message)
-
-        # Return the last match if any matches found
-        if matches:
-            return matches[-1].strip()
-        return None
-    except Exception as e:
-        logging.warning(
-            f"Exception when getting reference commit chat ID: {e!s}", exc_info=True
-        )
-        return None
 
 
 def find_git_root(start_path: str) -> str | None:

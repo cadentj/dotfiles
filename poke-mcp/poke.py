@@ -8,7 +8,7 @@ from codemcp import mcp
 CURRENT_DIR = Path(__file__).parent
 LOCAL_ENV_PATH = CURRENT_DIR / ".env"
 
-load_dotenv(".env")
+load_dotenv(LOCAL_ENV_PATH)
 
 image = (
     modal.Image.debian_slim()
@@ -20,7 +20,7 @@ image = (
         "git config --global user.email 'caden+poke-bot@example.com'",
     )
     .run_commands(
-        "git clone https://github.com/cadentj/sinnoh.git",
+        "git clone https://github.com/cadentj/sinnoh.git /root/sinnoh",
     )
     .uv_pip_install(
         "mcp[cli]>=1.2.0",
@@ -31,12 +31,9 @@ image = (
         "pyyaml>=6.0.0",
         "editorconfig>=0.17.0",
         "click>=8.1.8",
-        "agno>=1.2.16",
-        "anthropic>=0.49.0",
         "fastapi>=0.115.12",
         "uvicorn>=0.28.0",
         "starlette>=0.35.1",
-        "google-genai>=1.10.0",
         "pathspec>=0.12.1",
     )
     # Package import: poke.py runs as /root/poke.py; sibling `tools/` must exist in the image.
@@ -86,6 +83,7 @@ def _with_api_secret(inner_app):
 
 
 @app.function()
+@modal.concurrent(max_inputs=32)
 @modal.asgi_app()
 def poke_mcp():
     return _with_api_secret(mcp.streamable_http_app())

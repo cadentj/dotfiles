@@ -33,7 +33,6 @@ Example:
 async def chmod(
     path: str,
     mode: str,
-    chat_id: str | None = None,
     commit_hash: str | None = None,
 ) -> str:
     """Changes file permissions using chmod. Unlike standard chmod, this tool only supports
@@ -43,7 +42,6 @@ async def chmod(
     Args:
         path: The absolute path to the file to modify
         mode: The chmod mode to apply, only "a+x" and "a-x" are supported
-        chat_id: The unique ID to identify the chat session
         commit_hash: Optional Git commit hash for version tracking
 
     Example:
@@ -53,9 +51,6 @@ async def chmod(
     Returns:
         A formatted string with the chmod operation result
     """
-    # Set default values
-    chat_id = "" if chat_id is None else chat_id
-
     if not path:
         raise ValueError("File path must be provided")
 
@@ -114,7 +109,6 @@ async def chmod(
     success, commit_message = await commit_changes(
         directory,
         description,
-        chat_id,
     )
 
     if not success:

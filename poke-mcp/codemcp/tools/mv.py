@@ -20,7 +20,6 @@ async def mv(
     source_path: str,
     target_path: str,
     description: str | None = None,
-    chat_id: str | None = None,
     commit_hash: str | None = None,
 ) -> str:
     """Moves a file using git mv and commits the change.
@@ -35,7 +34,6 @@ async def mv(
         source_path: The path to the file to move (can be relative to the project root or absolute)
         target_path: The destination path where the file should be moved to (can be relative to the project root or absolute)
         description: Short description of why the file is being moved
-        chat_id: The unique ID to identify the chat session
         commit_hash: Optional Git commit hash for version tracking
 
     Returns:
@@ -43,7 +41,6 @@ async def mv(
     """
     # Set default values
     description = "" if description is None else description
-    chat_id = "" if chat_id is None else chat_id
 
     # Use the directory from the path as our starting point for source
     source_path = normalize_file_path(source_path)
@@ -140,8 +137,6 @@ async def mv(
     success, commit_message = await commit_changes(
         git_root_resolved,
         f"Move {source_rel_path} -> {target_rel_path}: {description}",
-        chat_id,
-        commit_all=False,  # No need for commit_all since git mv already stages the change
     )
 
     result = ""

@@ -19,7 +19,7 @@ __all__ = [
 
 @mcp.tool()
 async def rm(
-    path: str, description: str, chat_id: str, commit_hash: Optional[str] = None
+    path: str, description: str, commit_hash: Optional[str] = None
 ) -> str:
     """Removes a file using git rm and commits the change.
     Provide a short description of why the file is being removed.
@@ -31,7 +31,6 @@ async def rm(
     Args:
         path: The path to the file to remove (can be relative to the project root or absolute)
         description: Short description of why the file is being removed
-        chat_id: The unique ID to identify the chat session
         commit_hash: Optional Git commit hash for version tracking
 
     Returns:
@@ -45,11 +44,11 @@ async def rm(
     if not os.path.exists(full_path):
         raise FileNotFoundError(f"File does not exist: {path}")
 
-    # Safety check: Verify the file is within a git repository with codemcp.toml
+    # Safety check: Verify the file is within a git repository
     if not await is_git_repository(os.path.dirname(full_path)):
         raise ValueError(f"File is not in a Git repository: {path}")
 
-    # Check edit permission (which verifies codemcp.toml exists)
+    # Check edit permission (path must be inside repo)
     is_permitted, permission_message = await check_edit_permission(full_path)
     if not is_permitted:
         raise ValueError(permission_message)
@@ -105,8 +104,6 @@ async def rm(
     success, commit_message = await commit_changes(
         git_root_resolved,
         f"Remove {rel_path}: {description}",
-        chat_id,
-        commit_all=False,  # No need for commit_all since git rm already stages the change
     )
 
     result = ""
