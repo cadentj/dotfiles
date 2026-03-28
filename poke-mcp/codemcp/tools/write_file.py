@@ -27,6 +27,7 @@ async def write_file(
 ) -> str:
     """Write a file to the local filesystem. Overwrites the existing file if there is one.
     Provide a short description of the change.
+    Changes are automatically committed to git after each write. Use commit_and_push when you are ready to push to remote.
 
     Before using this tool:
 

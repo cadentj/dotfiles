@@ -22,8 +22,9 @@ async def mv(
     description: str | None = None,
     commit_hash: str | None = None,
 ) -> str:
-    """Moves a file using git mv and commits the change.
+    """Moves a file using git mv and commits the change automatically.
     Provide a short description of why the file is being moved.
+    Use commit_and_push when you are ready to push to remote.
 
     Before using this tool:
     1. Ensure the source file exists and is tracked by git

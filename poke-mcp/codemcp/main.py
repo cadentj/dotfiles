@@ -15,6 +15,7 @@ from starlette.routing import Mount
 
 from .mcp import mcp
 from .tools.chmod import chmod  # noqa: F401
+from .tools.commit_and_push import commit_and_push  # noqa: F401
 from .tools.edit_file import edit_file  # noqa: F401
 from .tools.glob import glob  # noqa: F401
 from .tools.grep import grep  # noqa: F401

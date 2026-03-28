@@ -21,8 +21,9 @@ __all__ = [
 async def rm(
     path: str, description: str, commit_hash: Optional[str] = None
 ) -> str:
-    """Removes a file using git rm and commits the change.
+    """Removes a file using git rm and commits the change automatically.
     Provide a short description of why the file is being removed.
+    Use commit_and_push when you are ready to push to remote.
 
     Before using this tool:
     1. Ensure the file exists and is tracked by git

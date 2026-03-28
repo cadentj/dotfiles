@@ -38,6 +38,7 @@ async def chmod(
     """Changes file permissions using chmod. Unlike standard chmod, this tool only supports
     a+x (add executable permission) and a-x (remove executable permission), because these
     are the only bits that git knows how to track.
+    Changes are automatically committed to git. Use commit_and_push when you are ready to push to remote.
 
     Args:
         path: The absolute path to the file to modify

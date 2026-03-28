@@ -754,6 +754,7 @@ async def edit_file(
 ) -> str:
     """This is a tool for editing files. For larger edits, use the WriteFile tool to overwrite files.
     Provide a short description of the change.
+    Changes are automatically committed to git after each edit. Use commit_and_push when you are ready to push to remote.
 
     Before using this tool:
 
