@@ -87,5 +87,5 @@ def _with_api_secret(inner_app):
 
 @app.function()
 @modal.asgi_app()
-def git_server():
+def poke_mcp():
     return _with_api_secret(mcp.streamable_http_app())
