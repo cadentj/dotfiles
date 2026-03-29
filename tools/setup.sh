@@ -91,7 +91,6 @@ sed "s|/home/sprite/sinnoh|${SINNOH_REPO_PATH}|g" "$GIT_SERVER_SRC" > "$DEST_GIT
 echo "==> Writing $START_GIT_MCP"
 cat > "$START_GIT_MCP" << EOF
 #!/bin/bash
-cd $SINNOH_REPO_PATH && git pull
 exec $PROXY_PATH --port 8082 -- python3 $DEST_GIT_SERVER
 EOF
 chmod +x "$START_GIT_MCP"

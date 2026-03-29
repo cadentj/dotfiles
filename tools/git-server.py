@@ -1,6 +1,3 @@
-# /home/sprite/git-server.py
-
-# pip install mcp
 from mcp.server.fastmcp import FastMCP
 import subprocess
 
