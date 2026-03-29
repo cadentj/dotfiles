@@ -1,112 +1,73 @@
 #!/usr/bin/env bash
-# Poke sprite MCP setup (see poke-sprites.md).
-# Prerequisites on the sprite: sprite CLI installed, `sprite use <name>` for this machine,
-# and this dotfiles repo cloned (any path). Run (do not `source` — use a bash subprocess):
-#   bash dotfiles/tools/setup.sh
-# Or: cd dotfiles/tools && bash setup.sh
-#
-# Fill in CONFIG below before running.
+# Run on the sprite with dotfiles cloned. See poke-sprites.md.
+# Edit the three values below, then: bash dotfiles/tools/setup.sh
 
-set -euo pipefail
+GITHUB_PAT="<github-pat>"
+SPRITE_URL="https://<sprite-url>"
+SPRITE_AUTH_TOKEN="<sprite-auth-token>"
 
-# --- CONFIG: edit placeholders before running ---
-GITHUB_PAT="<GITHUB_PAT>"
-GIT_USER_NAME="poke-bot"
-GIT_USER_EMAIL="caden+poke-bot@example.com"
-# Clone or sync your repo here; must match what git MCP tools use.
-SINNOH_REPO_PATH="/home/sprite/sinnoh"
-# After setup, add MCPs in Poke (local machine). Host or https URL from `sprite list` / dashboard:
-SPRITE_URL="<SPRITE_URL>"
-SPRITE_AUTH_TOKEN="<SPRITE_AUTH_TOKEN>"
+#######################
+# Set Git credentials #
+#######################
 
-# ${BASH_SOURCE[0]} is bash-only; zsh leaves it unset, so sourcing under zsh breaks with set -u.
-# Prefer BASH_SOURCE when present (bash executed/sourced); else $0 (zsh, or sh).
-if [[ -n "${BASH_SOURCE+x}" ]]; then
-  _setup_this="${BASH_SOURCE[0]}"
-else
-  _setup_this="$0"
-fi
-SCRIPT_DIR="$(cd "$(dirname "$_setup_this")" && pwd)"
-DOTFILES_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-GIT_SERVER_SRC="$SCRIPT_DIR/git-server.py"
-SPRITE_HOME="/home/sprite"
-DEST_GIT_SERVER="$SPRITE_HOME/git-server.py"
-START_MCP="$SPRITE_HOME/start-mcp.sh"
-START_GIT_MCP="$SPRITE_HOME/start-git-mcp.sh"
-START_NGINX="$SPRITE_HOME/start-nginx.sh"
-
-die() { echo "error: $*" >&2; exit 1; }
-
-[[ -f "$GIT_SERVER_SRC" ]] || die "missing $GIT_SERVER_SRC (run from cloned dotfiles repo)"
-
-placeholder_ok() {
-  local v="$1"
-  [[ -n "$v" && "$v" != *'<'* ]]
-}
-
-if ! placeholder_ok "$GITHUB_PAT"; then
-  die "set GITHUB_PAT in this script (GitHub PAT for https git)"
-fi
-if ! placeholder_ok "$GIT_USER_NAME"; then
-  die "set GIT_USER_NAME in this script"
-fi
-if ! placeholder_ok "$GIT_USER_EMAIL"; then
-  die "set GIT_USER_EMAIL in this script"
-fi
-
-command -v npm >/dev/null || die "npm not found"
-command -v python3 >/dev/null || die "python3 not found"
-command -v sprite-env >/dev/null || die "sprite-env not found (install/configure sprite tooling)"
-
-echo "==> Installing MCP packages"
-npm install -g @modelcontextprotocol/server-filesystem
-python3 -m pip install --user mcp-proxy mcp
-
-export PATH="${HOME}/.local/bin:${PATH}"
-PROXY_PATH="$(command -v mcp-proxy || true)"
-[[ -n "$PROXY_PATH" ]] || die "mcp-proxy not on PATH after pip install (~/.local/bin may need to be on PATH)"
-
-echo "==> mcp-proxy at $PROXY_PATH"
-
-echo "==> Writing $START_MCP"
-cat > "$START_MCP" << EOF
-#!/bin/bash
-exec $PROXY_PATH --port 8081 -- npx @modelcontextprotocol/server-filesystem $SPRITE_HOME
-EOF
-chmod +x "$START_MCP"
-
-echo "==> sprite-env: mcp-server (ignore error if service already exists)"
-sprite-env services create mcp-server --cmd "$START_MCP" || true
-
-echo "==> Git credentials and identity"
 git config --global credential.helper store
-printf 'https://x-access-token:%s@github.com\n' "$GITHUB_PAT" > "$SPRITE_HOME/.git-credentials"
-chmod 600 "$SPRITE_HOME/.git-credentials"
-git config --global user.name "$GIT_USER_NAME"
-git config --global user.email "$GIT_USER_EMAIL"
+echo "https://x-access-token:${GITHUB_PAT}@github.com" > ~/.git-credentials
 
-echo "==> Deploying git MCP server to $DEST_GIT_SERVER"
-sed "s|/home/sprite/sinnoh|${SINNOH_REPO_PATH}|g" "$GIT_SERVER_SRC" > "$DEST_GIT_SERVER"
+git config --global user.name "poke-bot"
+git config --global user.email "caden+poke-bot@example.com"
 
-echo "==> Writing $START_GIT_MCP"
-cat > "$START_GIT_MCP" << EOF
-#!/bin/bash
-exec $PROXY_PATH --port 8082 -- python3 $DEST_GIT_SERVER
+########################
+# Install MCP servers #
+########################
+
+pip install mcp-proxy mcp
+sudo apt install -y ripgrep nginx
+
+SCRIPTS_DIR=$(python -c 'import sysconfig; print(sysconfig.get_path("scripts"))')
+PROXY_PATH="${SCRIPTS_DIR}/mcp-proxy"
+if [ ! -x "$PROXY_PATH" ]; then
+  echo "mcp-proxy not found at $PROXY_PATH" >&2
+  exit 1
+fi
+echo "$PROXY_PATH"
+
+##################
+# Filesystem MCP #
+##################
+
+cat > /home/sprite/start-mcp.sh << EOF
+#!/usr/bin/env bash
+set -euo pipefail
+cd /home/sprite
+exec "$PROXY_PATH" --port 8081 -- python /home/sprite/code-mcp.py
 EOF
-chmod +x "$START_GIT_MCP"
+chmod +x /home/sprite/start-mcp.sh
 
-echo "==> sprite-env: git-mcp (ignore error if service already exists)"
-sprite-env services create git-mcp --cmd "$START_GIT_MCP" || true
+sprite-env services create mcp-server --cmd /home/sprite/start-mcp.sh
 
-echo "==> nginx (requires sudo)"
-sudo apt-get update -qq
-sudo apt-get install -y nginx
+###########
+# Git MCP #
+###########
 
-sudo tee /etc/nginx/sites-enabled/default >/dev/null << 'NGINXEOF'
+cat > /home/sprite/start-git-mcp.sh << EOF
+#!/usr/bin/env bash
+set -euo pipefail
+cd /home/sprite
+exec "$PROXY_PATH" --port 8082 -- python /home/sprite/git-mcp.py
+EOF
+chmod +x /home/sprite/start-git-mcp.sh
+
+sprite-env services create git-mcp --cmd /home/sprite/start-git-mcp.sh
+
+################
+# Set up NGINX #
+################
+
+sudo tee /etc/nginx/sites-enabled/default << 'EOF'
 server {
     listen 8080;
 
-    location /fs/ {
+    location /code/ {
         proxy_pass http://127.0.0.1:8081/;
         proxy_set_header Connection '';
         proxy_http_version 1.1;
@@ -122,40 +83,24 @@ server {
         proxy_buffering off;
     }
 }
-NGINXEOF
+EOF
 
-cat > "$START_NGINX" << 'EOF'
+cat > /home/sprite/start-nginx.sh << 'EOF'
 #!/bin/bash
 exec nginx -g 'daemon off;'
 EOF
-chmod +x "$START_NGINX"
+chmod +x /home/sprite/start-nginx.sh
 
-echo "==> sprite-env: nginx (ignore error if service already exists)"
-sprite-env services create nginx --cmd "$START_NGINX" || true
+sprite-env services create nginx --cmd /bin/bash -- /home/sprite/start-nginx.sh
 
-echo ""
-echo "==> Done. If pip installed to ~/.local/bin, ensure it is on PATH for sprite services."
-echo ""
+########################
 
-if placeholder_ok "$SPRITE_URL" && placeholder_ok "$SPRITE_AUTH_TOKEN"; then
-  # SPRITE_URL: from \`sprite list\` — host only (e.g. foo.sprites.dev) or full URL; https:// added if missing
-  base="${SPRITE_URL%/}"
-  if [[ "$base" != http://* && "$base" != https://* ]]; then
-    base="https://$base"
-  fi
-  echo "Add these MCPs in Poke (run on your local machine where \`poke\` is installed):"
-  echo ""
-  echo "poke mcp add ${base}/fs/mcp \\"
-  echo "  --name \"Sprite FS\" \\"
-  echo "  --api-key $SPRITE_AUTH_TOKEN"
-  echo ""
-  echo "poke mcp add ${base}/git/mcp \\"
-  echo "    --name \"Git\" \\"
-  echo "    --api-key $SPRITE_AUTH_TOKEN"
-  echo ""
-else
-  echo "Set SPRITE_URL and SPRITE_AUTH_TOKEN in this script and re-run to print \`poke mcp add\` commands,"
-  echo "or add manually (see poke-sprites.md):"
-  echo "  - URL: sprite list"
-  echo "  - Token: sprites.dev dashboard"
-fi
+echo
+echo "On your machine (where poke is installed):"
+echo "poke mcp add ${SPRITE_URL}/code/mcp \\"
+echo "  --name \"Sprite Code MCP\" \\"
+echo "  --api-key ${SPRITE_AUTH_TOKEN}"
+echo
+echo "poke mcp add ${SPRITE_URL}/git/mcp \\"
+echo "    --name \"Sprite Git MCP\" \\"
+echo "    --api-key ${SPRITE_AUTH_TOKEN}"

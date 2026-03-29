@@ -1,7 +1,7 @@
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP # type: ignore
 import subprocess
 
-mcp = FastMCP("git")
+mcp = FastMCP("git-mcp")
 
 def run_git(*args, cwd="/home/sprite/sinnoh"):
     result = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
