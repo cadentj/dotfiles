@@ -1,11 +1,26 @@
 """MCP server for Google Tasks API v1 (REST).
 
-Auth: set GOOGLE_TASKS_CLIENT_ID, GOOGLE_TASKS_CLIENT_SECRET, and
-GOOGLE_TASKS_REFRESH_TOKEN (from a one-time OAuth flow with scope
-https://www.googleapis.com/auth/tasks).
+Works with any Google account that has Google Tasks (personal @gmail.com or
+Google Workspace); the API is not Workspace-only.
 
-Alternatively, GOOGLE_TASKS_CREDENTIALS_JSON may point to a JSON file with keys
-client_id, client_secret, refresh_token (and optional token_uri).
+Auth (pick one approach):
+
+1) Env vars: GOOGLE_TASKS_CLIENT_ID, GOOGLE_TASKS_CLIENT_SECRET,
+   GOOGLE_TASKS_REFRESH_TOKEN (after a one-time OAuth with scope
+   https://www.googleapis.com/auth/tasks).
+
+2) Single JSON file via GOOGLE_TASKS_CREDENTIALS_JSON: either the flat shape
+   {client_id, client_secret, refresh_token} or merge the OAuth *client* JSON
+   you download from Google Cloud (top-level "installed" or "web" object) with
+   a sibling "refresh_token" key you add after running the OAuth flow once.
+
+3) Two files (matches the usual Console download + token pattern):
+   GOOGLE_TASKS_CLIENT_SECRETS_JSON = path to the downloaded client secret JSON
+   (unchanged; contains "installed" or "web").
+   GOOGLE_TASKS_TOKEN_JSON = path to a small JSON file with at least
+   {"refresh_token": "..."} (e.g. copy from oauth-setup output).
+
+Env vars override values loaded from files when set.
 """
 
 from __future__ import annotations
@@ -20,19 +35,73 @@ from mcp.server.fastmcp import FastMCP  # type: ignore
 mcp = FastMCP("google-tasks-mcp")
 
 TASKS_SCOPE = "https://www.googleapis.com/auth/tasks"
+DEFAULT_TOKEN_URI = "https://oauth2.googleapis.com/token"
+
+
+def _client_from_installed_or_web(data: dict) -> dict[str, str]:
+    for key in ("installed", "web"):
+        block = data.get(key)
+        if not isinstance(block, dict):
+            continue
+        cid = block.get("client_id") or ""
+        secret = block.get("client_secret") or ""
+        token_uri = block.get("token_uri") or DEFAULT_TOKEN_URI
+        if cid and secret:
+            return {
+                "client_id": str(cid),
+                "client_secret": str(secret),
+                "token_uri": str(token_uri),
+            }
+    return {}
+
+
+def _dict_from_json_file(path: str) -> dict:
+    with open(path, encoding="utf-8") as f:
+        raw = json.load(f)
+    return raw if isinstance(raw, dict) else {}
 
 
 def _load_auth_config() -> dict[str, str]:
-    path = os.environ.get("GOOGLE_TASKS_CREDENTIALS_JSON", "").strip()
-    if path and os.path.isfile(path):
-        with open(path, encoding="utf-8") as f:
-            data = json.load(f)
-        return {k: str(v) for k, v in data.items() if v is not None}
-    return {
-        "client_id": os.environ.get("GOOGLE_TASKS_CLIENT_ID", "").strip(),
-        "client_secret": os.environ.get("GOOGLE_TASKS_CLIENT_SECRET", "").strip(),
-        "refresh_token": os.environ.get("GOOGLE_TASKS_REFRESH_TOKEN", "").strip(),
-    }
+    cfg: dict[str, str] = {}
+
+    combined = os.environ.get("GOOGLE_TASKS_CREDENTIALS_JSON", "").strip()
+    if combined and os.path.isfile(combined):
+        data = _dict_from_json_file(combined)
+        cfg.update(_client_from_installed_or_web(data))
+        for k in ("client_id", "client_secret", "refresh_token", "token_uri"):
+            v = data.get(k)
+            if v is not None and str(v).strip():
+                cfg[k] = str(v).strip()
+
+    client_path = os.environ.get("GOOGLE_TASKS_CLIENT_SECRETS_JSON", "").strip()
+    if client_path and os.path.isfile(client_path):
+        data = _dict_from_json_file(client_path)
+        extracted = _client_from_installed_or_web(data)
+        if extracted:
+            cfg.update(extracted)
+        else:
+            for k in ("client_id", "client_secret"):
+                v = data.get(k)
+                if v is not None and str(v).strip():
+                    cfg[k] = str(v).strip()
+            if data.get("token_uri"):
+                cfg["token_uri"] = str(data["token_uri"]).strip()
+
+    token_path = os.environ.get("GOOGLE_TASKS_TOKEN_JSON", "").strip()
+    if token_path and os.path.isfile(token_path):
+        data = _dict_from_json_file(token_path)
+        rt = data.get("refresh_token")
+        if rt is not None and str(rt).strip():
+            cfg["refresh_token"] = str(rt).strip()
+
+    if os.environ.get("GOOGLE_TASKS_CLIENT_ID", "").strip():
+        cfg["client_id"] = os.environ["GOOGLE_TASKS_CLIENT_ID"].strip()
+    if os.environ.get("GOOGLE_TASKS_CLIENT_SECRET", "").strip():
+        cfg["client_secret"] = os.environ["GOOGLE_TASKS_CLIENT_SECRET"].strip()
+    if os.environ.get("GOOGLE_TASKS_REFRESH_TOKEN", "").strip():
+        cfg["refresh_token"] = os.environ["GOOGLE_TASKS_REFRESH_TOKEN"].strip()
+
+    return cfg
 
 
 def _credentials() -> Credentials:
@@ -44,11 +113,12 @@ def _credentials() -> Credentials:
     )
     if not (cid and secret and refresh):
         raise RuntimeError(
-            "Google Tasks auth missing. Set GOOGLE_TASKS_CLIENT_ID, "
-            "GOOGLE_TASKS_CLIENT_SECRET, GOOGLE_TASKS_REFRESH_TOKEN, or "
-            "GOOGLE_TASKS_CREDENTIALS_JSON with those keys."
+            "Google Tasks auth missing. Use env CLIENT_ID/SECRET/REFRESH_TOKEN, or "
+            "GOOGLE_TASKS_CREDENTIALS_JSON (flat or client JSON + refresh_token), or "
+            "GOOGLE_TASKS_CLIENT_SECRETS_JSON + GOOGLE_TASKS_TOKEN_JSON "
+            '(token file: {"refresh_token": "..."}).'
         )
-    token_uri = cfg.get("token_uri") or "https://oauth2.googleapis.com/token"
+    token_uri = cfg.get("token_uri") or DEFAULT_TOKEN_URI
     return Credentials(
         token=None,
         refresh_token=refresh,
