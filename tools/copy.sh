@@ -8,5 +8,8 @@ sprite exec \
   --file "${SCRIPT_DIR}/code-mcp.py:/home/sprite/code-mcp.py" \
   --file "${SCRIPT_DIR}/edit.py:/home/sprite/edit.py" \
   --file "${SCRIPT_DIR}/git-mcp.py:/home/sprite/git-mcp.py" \
+  --file "${SCRIPT_DIR}/google-tasks-mcp.py:/home/sprite/google-tasks-mcp.py" \
+  --file "${SCRIPT_DIR}/google-tasks-oauth-setup.py:/home/sprite/google-tasks-oauth-setup.py" \
   --file "${SCRIPT_DIR}/setup.sh:/home/sprite/setup.sh" \
-  -- ls -la /home/sprite/code-mcp.py /home/sprite/edit.py /home/sprite/git-mcp.py /home/sprite/setup.sh
+  -- ls -la /home/sprite/code-mcp.py /home/sprite/edit.py /home/sprite/git-mcp.py \
+      /home/sprite/google-tasks-mcp.py /home/sprite/google-tasks-oauth-setup.py /home/sprite/setup.sh
