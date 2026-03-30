@@ -20,7 +20,7 @@ git config --global user.email "caden+poke-bot@example.com"
 # Install MCP servers #
 ########################
 
-pip install mcp-proxy mcp
+pip install mcp-proxy mcp google-api-python-client google-auth-httplib2 google-auth-oauthlib
 sudo apt install -y ripgrep nginx
 
 SCRIPTS_DIR=$(python -c 'import sysconfig; print(sysconfig.get_path("scripts"))')
@@ -59,6 +59,20 @@ chmod +x /home/sprite/start-git-mcp.sh
 
 sprite-env services create git-mcp --cmd /home/sprite/start-git-mcp.sh
 
+#####################
+# Google Tasks MCP #
+#####################
+
+cat > /home/sprite/start-google-tasks-mcp.sh << EOF
+#!/usr/bin/env bash
+set -euo pipefail
+cd /home/sprite
+exec "$PROXY_PATH" --port 8083 -- python /home/sprite/google-tasks-mcp.py
+EOF
+chmod +x /home/sprite/start-google-tasks-mcp.sh
+
+sprite-env services create google-tasks-mcp --cmd /home/sprite/start-google-tasks-mcp.sh
+
 ################
 # Set up NGINX #
 ################
@@ -77,6 +91,14 @@ server {
 
     location /git/ {
         proxy_pass http://127.0.0.1:8082/;
+        proxy_set_header Connection '';
+        proxy_http_version 1.1;
+        chunked_transfer_encoding off;
+        proxy_buffering off;
+    }
+
+    location /tasks/ {
+        proxy_pass http://127.0.0.1:8083/;
         proxy_set_header Connection '';
         proxy_http_version 1.1;
         chunked_transfer_encoding off;
@@ -103,4 +125,9 @@ echo "  --api-key ${SPRITE_AUTH_TOKEN}"
 echo
 echo "poke mcp add ${SPRITE_URL}/git/mcp \\"
 echo "    --name \"Sprite Git MCP\" \\"
+echo "    --api-key ${SPRITE_AUTH_TOKEN}"
+echo
+echo "# Google Tasks MCP: set GOOGLE_TASKS_* on the sprite (see google-tasks-mcp.py docstring)"
+echo "poke mcp add ${SPRITE_URL}/tasks/mcp \\"
+echo "    --name \"Sprite Google Tasks MCP\" \\"
 echo "    --api-key ${SPRITE_AUTH_TOKEN}"
