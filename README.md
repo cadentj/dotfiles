@@ -2,8 +2,6 @@
 
 Run `source dotfiles/runpod.sh` to set up.
 
-Adopted from [John Hughes](https://github.com/jplhughes/dotfiles/tree/master).
-
 ## Notes
 
 Use the following commands for most workflows.
