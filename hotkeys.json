@@ -1,0 +1,78 @@
+{
+    "workspace:previous-tab": [],
+    "editor:focus-right": [
+      {
+        "modifiers": [
+          "Mod"
+        ],
+        "key": "]"
+      }
+    ],
+    "editor:focus-left": [
+      {
+        "modifiers": [
+          "Mod"
+        ],
+        "key": "["
+      }
+    ],
+    "obsidian-minimal-settings:toggle-minimal-focus-mode": [
+      {
+        "modifiers": [
+          "Mod",
+          "Shift"
+        ],
+        "key": "O"
+      }
+    ],
+    "workspace:split-vertical": [
+      {
+        "modifiers": [
+          "Mod"
+        ],
+        "key": "\\"
+      }
+    ],
+    "app:toggle-left-sidebar": [
+      {
+        "modifiers": [
+          "Mod",
+          "Shift"
+        ],
+        "key": "B"
+      }
+    ],
+    "switcher:open": [
+      {
+        "modifiers": [
+          "Mod"
+        ],
+        "key": "P"
+      }
+    ],
+    "command-palette:open": [
+      {
+        "modifiers": [
+          "Mod",
+          "Shift"
+        ],
+        "key": "P"
+      }
+    ],
+    "editor:toggle-source": [
+      {
+        "modifiers": [
+          "Alt"
+        ],
+        "key": "P"
+      }
+    ],
+    "workspace:next-tab": [
+      {
+        "modifiers": [
+          "Ctrl"
+        ],
+        "key": "Tab"
+      }
+    ]
+  }
