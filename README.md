@@ -1,8 +1,30 @@
-# dotfiles
+# Caden's dotfiles
+
+## Mac
+
+Apps: 
+- [Rectangle](https://rectangleapp.com/) - Fast window tiling. Slimmer than Yabai + skhd.
+  - Loads from `RectangleConfig.json`
+- [Obsidian](https://obsidian.md/) -
+  - I have a couple hotkeys at `hotkeys.json` which map to keybinds similar to the ones I use in Cursor. E.g.
+    - `cmd + P` for the file picker
+    - `cmd + shift P` for a command palette
+    - `cmd + \` for splitting the current window
+- [Ghostty](https://ghostty.org/)
+  - [Quick Terminal](https://ghostty.org/docs/config/keybind/reference#toggle_quick_terminal) is great. I unmap spotlight search from `cmd + space` and use a small launcher program instead. Spotlight search tends to bring up a bunch of unrelated results + is slow.
+  - Load the config at `config.ghostty`.
+
+## Tools
+
+`docs`
+
+## Runpod
+
+I use Runpod as a GPU workspace for work sometimes.
 
 Run `source dotfiles/runpod.sh` to set up.
 
-## Notes
+## Cursor / VSCode
 
 Use the following commands for most workflows.
 
@@ -24,20 +46,3 @@ Also add this to your user settings if you want to use `.bashrc` variables in Ju
         "dotenv.load_dotenv('/root/.bashrc')"
     ],
 ```
-
-This repository uses Runpod Environment Variables to login.
-
-
-## Commands
-
-Copy my zsh theme from dotfiles to the zsh config directory.
-`cp ~/Programming/dotfiles/cadentj.zsh-theme $ZSH_CUSTOM/themes/cadentj.zsh-theme`
-
-
-# My Mac Settings
-
-Apps: 
-- [Rectangle](https://rectangleapp.com/) - 
-- [Obsidian](https://obsidian.md/) -
-- [Ghostty](https://ghostty.org/)
-  - [Quick Terminal](https://ghostty.org/docs/config/keybind/reference#toggle_quick_terminal) is great. I use it over spotlight search.
