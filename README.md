@@ -32,3 +32,12 @@ This repository uses Runpod Environment Variables to login.
 
 Copy my zsh theme from dotfiles to the zsh config directory.
 `cp ~/Programming/dotfiles/cadentj.zsh-theme $ZSH_CUSTOM/themes/cadentj.zsh-theme`
+
+
+# My Mac Settings
+
+Apps: 
+- [Rectangle](https://rectangleapp.com/) - 
+- [Obsidian](https://obsidian.md/) -
+- [Ghostty](https://ghostty.org/)
+  - [Quick Terminal](https://ghostty.org/docs/config/keybind/reference#toggle_quick_terminal) is great. I use it over spotlight search.
