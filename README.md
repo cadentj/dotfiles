@@ -14,6 +14,9 @@ Apps:
   - [Quick Terminal](https://ghostty.org/docs/config/keybind/reference#toggle_quick_terminal) is great. I unmap spotlight search from `cmd + space` and use a small launcher program instead. Spotlight search tends to bring up a bunch of unrelated results + is slow.
   - Load the config at `config.ghostty`.
 
+
+Sort of an unsorted note atm, but I was pretty confused why my terminal was taking a second to startup, apparently NVM was always loading so I added some scripts Codex gave me for lazy loading in `lazy_nvm.sh`.
+
 ## Tools
 
 `docs`
