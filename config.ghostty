@@ -4,6 +4,7 @@ keybind = super+left=goto_split:left
 keybind = super+right=goto_split:right
 keybind = super+up=goto_split:top
 keybind = super+down=goto_split:bottom
+keybind = super+shift+e=equalize_splits
 
 shell-integration-features = ssh-terminfo
 
