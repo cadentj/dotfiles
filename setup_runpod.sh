@@ -3,8 +3,8 @@
 # 1) Install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 2) Setup github
-bash dotfiles/setup_github.sh
+# 2) Setup github (requires gh CLI)
+gh auth login --web --git-protocol https
 
 # 3) Install packages
 apt-get update
